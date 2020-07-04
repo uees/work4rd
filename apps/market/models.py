@@ -32,7 +32,7 @@ class SaleOrder(models.Model):
     amount = models.DecimalField("金额", max_digits=12, decimal_places=2, blank=True, null=True, default=0.00)
     discount_amount = models.DecimalField("优惠额", max_digits=12, decimal_places=2, blank=True, null=True, default=0.00)
     status = models.CharField("状态", max_length=16, default='0', choices=STATUS)
-    sale_man = models.CharField("业务员", blank=True, null=True)
+    sale_man = models.CharField("业务员", max_length=32, blank=True, null=True)
 
     def __str__(self):
         return '%s %s' % (self.code, self.title)

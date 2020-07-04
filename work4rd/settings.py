@@ -53,6 +53,10 @@ INSTALLED_APPS = [
     'corsheaders',
 
     # my apps
+    'apps.basedata',
+    'apps.development',
+    'apps.invent',
+    'apps.market'
 ]
 
 MIDDLEWARE = [
@@ -157,7 +161,7 @@ STATICFILES_DIRS = (
 )
 
 # 允许使用用户名或密码登录
-AUTHENTICATION_BACKENDS = ['account.user_login_backend.EmailOrUsernameModelBackend']
+# AUTHENTICATION_BACKENDS = ['account.user_login_backend.EmailOrUsernameModelBackend']
 
 # AUTH_USER_MODEL = 'account.User'
 

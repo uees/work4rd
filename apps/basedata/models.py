@@ -1,7 +1,5 @@
 from django.db import models
 
-from apps.development.models import Formula
-
 MEASURE = (
     ('kg', "千克"),
     ('ge', "个"),
@@ -38,7 +36,7 @@ class Material(models.Model):
     spec = models.CharField("规格", max_length=120, blank=True, default='')
     category = models.ForeignKey(MaterialCategory, verbose_name="类别", blank=True, null=True, on_delete=models.PROTECT)
     status = models.BooleanField("是否在用", default=True)
-    formula = models.ForeignKey(Formula, verbose_name="配方", blank=True, null=True, on_delete=models.SET_NULL)
+    formula = models.ForeignKey("development.Formula", verbose_name="配方", blank=True, null=True, on_delete=models.SET_NULL)
     # 设备？
     is_equip = models.BooleanField("是否设备", default=False)
     # 可销售
