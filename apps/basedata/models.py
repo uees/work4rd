@@ -13,7 +13,8 @@ class MaterialCategory(models.Model):
     物料分类 fk=self
     """
     parent = models.ForeignKey('self', verbose_name="父类", null=True, blank=True, on_delete=models.SET_NULL)
-    code = models.CharField("代码", max_length=64, unique=True)
+    code = models.CharField("代码", max_length=64, db_index=True)
+    spec = models.CharField("规格", max_length=256, blank=True, default='')
     name = models.CharField("名称", max_length=128, null=True, blank=True)
 
     def __str__(self):
