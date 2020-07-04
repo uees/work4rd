@@ -216,7 +216,7 @@ LOGGING = {
         }
     },
     'loggers': {
-        'txdStock': {
+        'work4rd': {
             'handlers': ['log_file', 'console'],
             'level': 'INFO',
             'propagate': True,
