@@ -67,13 +67,11 @@ def _extract_value(data: list) -> list:
     return result
 
 
-def viscosity2excel(formula_path: str, viscosity_filepath: str):
-    data = extract_viscosity(formula_path)
-
+def viscosity2excel(formula_data: list, viscosity_filepath: str):
     wb = Workbook()
     ws = wb.active
 
-    for index, item in enumerate(data):
+    for index, item in enumerate(formula_data):
         ws.cell(row=index + 1, column=1, value=item['name'])
         if 'min' in item:
             ws.cell(row=index + 1, column=2, value=item['min'])
@@ -84,9 +82,8 @@ def viscosity2excel(formula_path: str, viscosity_filepath: str):
     wb.save(filename=viscosity_filepath)
 
 
-def viscosity2db(formula_path: str, host, user, password, dbname):
-    data = extract_viscosity(formula_path)
-
+def viscosity2db(formula_data: list, host, user, password, dbname):
+    pass
     # todo to database
 
 

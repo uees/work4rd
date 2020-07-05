@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 
-def new_formula():
+def new_formula() -> dict:
     return {
         'name': '',
         'created_at': '',
@@ -36,7 +36,7 @@ def new_formula():
 
             'viscosity': '',  # 260~270dpas/25℃
 
-            'package_machine': '',  # 包装过滤设备方式
+            'package_way': '',  # 包装过滤方式
             'package_screen': '',  # 过滤袋规格 100T
             'package_specification': '',  # 5kg
             'package_ratio': '',  # 3:1
@@ -56,7 +56,7 @@ def new_formula():
 class FormulaParser(object):
     """ 分析一个excel文件，获取产品配方信息"""
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         self.filepath = filepath
         self.formulas = []
 
@@ -68,20 +68,9 @@ class FormulaParser(object):
             self.workbook = None
             self.worksheets_num = None
 
-    def parse(self):
+    def parse(self) -> list:
         """ return all formulas in self.workbook
-        formula is a dict(
-            name<str>,
-            category<str>,
-            version<str>,
-            common_name<str>,
-            description<str>,
-            date<datetime>,
-            materials<list>,
-            extend_materials<list>,
-            metas<list>
-        )
-        @see settings.formula
+        formula is a dict @see new_formula()
         """
         if self.workbook is None:
             return self.formulas
@@ -94,14 +83,20 @@ class FormulaParser(object):
             formula = copy.deepcopy(_formula)  # 这里必须 copy 一份，防止引用
             formula['name'] = product_name  # 重置为车间使用的产品名
             formula['materials'] = materials
+
+            # 加料信息
             extends_info = self.get_extends_info(sheet_name)
             formula['extend_materials'] = extends_info['materials']
             formula['metas']['after_adding_requirement'] = extends_info['requirements']
+
+            # 包装信息
+            formula['technologies'].update(self.get_package_info(sheet_name))
+
             self.formulas.append(formula)
 
         return self.formulas
 
-    def parse_filename(self):
+    def parse_filename(self) -> dict:
         """
         解析文件名
         return dict formula update dict(name, created_at, description, version)
@@ -129,7 +124,7 @@ class FormulaParser(object):
 
         return _formula
 
-    def get_products(self):
+    def get_products(self) -> list:
         """ return a [(product_name, sheet_name)] list """
         if self.workbook is None:
             return []
@@ -145,7 +140,7 @@ class FormulaParser(object):
                                    '请检查是否为不标准的配方格式。')
         return products
 
-    def get_mixing_materials(self, start_row=8):
+    def get_mixing_materials(self, start_row=8) -> list:
         """
         获取配料表
         return a list[dict(name, amount, workshop)]
@@ -163,7 +158,7 @@ class FormulaParser(object):
 
         return materials
 
-    def get_extends_info(self, sheet):
+    def get_extends_info(self, sheet) -> dict:
         """
         获取加料信息
         return a dict(materials<list>, requirements<list>)
@@ -192,8 +187,59 @@ class FormulaParser(object):
 
         return info
 
+    def get_package_info(self, sheet) -> dict:
+        info = {
+            'package_way': '',  # 包装过滤方式
+            'package_screen': '',  # 过滤袋规格 100T
+            'package_specification': '',  # 5kg
+            'package_ratio': '',  # 3:1
+            'package_part_b': '',  # HD21
+            'package_label': '',  # 标签要求 160dpas,两头贴
+        }
+        ws = self.workbook[sheet]
+        start_row = self.get_package_start_row(ws)
+        text = ws[f"I{start_row}"].value
+
+        # 获取标签信息
+        label_pattern = re.compile(r'标签[：:](.+)')
+        label_match = label_pattern.match(text)
+        if label_match:
+            info['package_label'] = label_match.group(1)
+
+        # 获取包装规格信息
+        spec_pattern = re.compile(r'\d+\s*kg', re.M | re.I)
+        spec_match = spec_pattern.search(text)
+        if spec_match:
+            info['package_specification'] = spec_match.group()
+
+        # 获取B组分信息
+        part_b_pattern = re.compile(r'[HD][DBASHF试样无卤素\d\-（）()]+', re.M | re.I)
+        part_b_match = part_b_pattern.search(text)
+        if part_b_match:
+            info['package_part_b'] = part_b_match.group()
+
+        # 获取配比
+        ratio_pattern = re.compile(r'A[/:：]B=(\d+[/:：]\d+)', re.M | re.I)
+        ratio_match = ratio_pattern.search(text)
+        if ratio_match:
+            info['package_ratio'] = ratio_match.group(1)
+
+        # 获取过滤方式
+        way_pattern = re.compile(r'过滤方式[:：](.*)', re.M | re.I)
+        way_match = way_pattern.search(text)
+        if way_match:
+            info['package_way'] = way_match.group(1)
+
+        # 获取滤袋规格
+        screen_pattern = re.compile(r'滤袋规格[:：](.*)', re.M | re.I)
+        screen_match = screen_pattern.search(text)
+        if screen_match:
+            info['package_screen'] = screen_match.group(1)
+
+        return info
+
     @staticmethod
-    def get_extends_start_row(ws):
+    def get_extends_start_row(ws) -> int:
         """获取加料信息起始行"""
         start_row = 13
         for row in range(start_row, ws.max_row):
@@ -201,3 +247,11 @@ class FormulaParser(object):
                 return row
 
         return start_row
+
+    @staticmethod
+    def get_package_start_row(ws) -> int:
+        """获取包装信息起始行"""
+        start_row = 22
+        for row in range(start_row, ws.max_row):
+            if ws.cell(row=row, column=1).value == "包装工序":
+                return row
