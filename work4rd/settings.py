@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'corsheaders',
 
     # my apps
+    'apps.account',
     'apps.basedata',
     'apps.development',
     'apps.invent',
@@ -161,9 +162,9 @@ STATICFILES_DIRS = (
 )
 
 # 允许使用用户名或密码登录
-# AUTHENTICATION_BACKENDS = ['account.user_login_backend.EmailOrUsernameModelBackend']
+AUTHENTICATION_BACKENDS = ['apps.account.user_login_backend.EmailOrUsernameModelBackend']
 
-# AUTH_USER_MODEL = 'account.User'
+AUTH_USER_MODEL = 'account.User'
 
 # LOGIN_URL = '/account/login/'
 # LOGIN_REDIRECT_URL = '/'
