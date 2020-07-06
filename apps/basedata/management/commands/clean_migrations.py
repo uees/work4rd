@@ -26,10 +26,11 @@ def clean_migrations():
 
 def get_migrations_dirs():
     migrations_dirs = []
-    for item in os.listdir(settings.BASE_DIR):
-        item_path = os.path.join(settings.BASE_DIR, item)
-        if os.path.isdir(item_path):
-            app_migrations_path = os.path.join(item_path, 'migrations')
+    apps_dir = os.path.join(settings.BASE_DIR, 'apps')
+    for app_dir in os.listdir(apps_dir):
+        app_path = os.path.join(apps_dir, app_dir)
+        if os.path.isdir(app_path):
+            app_migrations_path = os.path.join(app_path, 'migrations')
             if os.path.exists(app_migrations_path):
                 migrations_dirs.append(app_migrations_path)
     return migrations_dirs
