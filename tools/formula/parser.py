@@ -92,6 +92,9 @@ class FormulaParser(object):
             # 包装信息
             formula['technologies'].update(self.get_package_info(sheet_name))
 
+            # 研磨信息
+            formula['technologies'].update(self.get_grind_info(sheet_name))
+
             self.formulas.append(formula)
 
         return self.formulas
@@ -158,7 +161,7 @@ class FormulaParser(object):
 
         return materials
 
-    def get_extends_info(self, sheet) -> dict:
+    def get_extends_info(self, sheet: str) -> dict:
         """
         获取加料信息
         return a dict(materials<list>, requirements<list>)
@@ -187,7 +190,7 @@ class FormulaParser(object):
 
         return info
 
-    def get_package_info(self, sheet) -> dict:
+    def get_package_info(self, sheet: str) -> dict:
         info = {
             'package_way': '',  # 包装过滤方式
             'package_screen': '',  # 过滤袋规格 100T
@@ -235,6 +238,44 @@ class FormulaParser(object):
         screen_match = screen_pattern.search(text)
         if screen_match:
             info['package_screen'] = screen_match.group(1)
+
+        return info
+
+    def get_grind_info(self, sheet_name: str):
+        """获取研磨信息"""
+        info = {
+            'grind_times': '',  # 研磨次数
+            'grind_temperature': '<=45',  # 出料温度要求
+            'grind_machine': '',  # 研磨设备
+            'grind_granule': '<=20um',  # 研磨细度
+            'grind_speed': '',  # 研磨速度
+        }
+        ws = self.workbook[sheet_name]
+        text = ws["I8"].value
+
+        # 研磨次数
+        pattern = re.compile(r'(\d|\d[\-~]\d)遍', re.M)
+        match = pattern.search(text)
+        if match:
+            info['grind_times'] = match.group(1)
+
+        # 温度要求
+        pattern = re.compile(r'出料温度[:：](.*℃)', re.M)
+        match = pattern.search(text)
+        if match:
+            info['grind_temperature'] = match.group(1)
+
+        # 细度要求
+        pattern = re.compile(r'细度[:：](.*[μu]m)', re.M)
+        match = pattern.search(text)
+        if match:
+            info['grind_granule'] = match.group(1)
+
+        # 速度要求
+        pattern = re.compile(r'流量[:：](.*kg/h)', re.M)
+        match = pattern.search(text)
+        if match:
+            info['grind_speed'] = match.group(1)
 
         return info
 
