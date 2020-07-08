@@ -1,5 +1,6 @@
-import re
 import glob
+import re
+
 from openpyxl import Workbook
 
 from .parser import FormulaParser

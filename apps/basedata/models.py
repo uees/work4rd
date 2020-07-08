@@ -48,14 +48,6 @@ class Material(models.Model):
     def __str__(self):
         return "%s %s %s" % (self.code, self.name, self.spec)
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        if not self.barcode:
-            # barcode 应该 unique
-            num = Material.objects.exclude(id=self.id).filter(code=self.code).count()
-            barcode = '%02d%s' % ((num + 1), self.code)
-            Material.objects.filter(id=self.id).update(barcode=barcode)
-
     class Meta:
         verbose_name = "材料"
         verbose_name_plural = verbose_name

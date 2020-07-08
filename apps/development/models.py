@@ -1,6 +1,6 @@
 from django.db import models
 
-from apps.basedata.models import MaterialCategory, Material, MEASURE
+from apps.basedata.models import MEASURE, Material, MaterialCategory
 
 
 class Formula(models.Model):
@@ -29,6 +29,10 @@ class Formula(models.Model):
     authors = models.CharField("开发负责人", max_length=64, blank=True, null=True)
     memo = models.CharField("备注", max_length=256, blank=True, null=True)
     history = models.TextField("修改历史", blank=True, null=True)
+    created_at = models.DateTimeField("创建日期", auto_now_add=True)
+    updated_at = models.DateTimeField("修改日期", null=True, blank=True)
+    official_at = models.DateTimeField("转正日期", null=True, blank=True)
+    drop_at = models.DateTimeField("作废日期", null=True, blank=True)
 
     def __str__(self):
         return '%s %s' % (self.name, self.version)
@@ -39,7 +43,7 @@ class Formula(models.Model):
         super().save(*args, **kwargs)
 
         if self.status == 'OFFICIAL':  # 一个物料同时只能有一个正式配方
-            Formula.objects.filter(name=self.name, status='OFFICIAL').exclude(id=self.id)\
+            Formula.objects.filter(name=self.name, status='OFFICIAL').exclude(id=self.id) \
                 .update(status='INVALID')
 
         # todo init self.per_weight
@@ -48,6 +52,16 @@ class Formula(models.Model):
         verbose_name = "配方"
         verbose_name_plural = verbose_name
         ordering = ['-id']
+
+
+class FormulaMeta(models.Model):
+    formula = models.ForeignKey(Formula, verbose_name="配方", on_delete=models.CASCADE)
+    name = models.CharField("配方名称", max_length=128)
+    value = models.CharField("配方名称", max_length=256)
+
+    class Meta:
+        verbose_name = "配方Meta"
+        verbose_name_plural = verbose_name
 
 
 class FormulaDetail(models.Model):

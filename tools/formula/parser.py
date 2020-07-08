@@ -1,13 +1,12 @@
-import os
-import re
 import copy
 import logging
+import os
+import re
 from datetime import datetime
 
 from openpyxl import load_workbook
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("work4rd")
 
 
 def new_formula() -> dict:
@@ -63,8 +62,8 @@ class FormulaParser(object):
         try:
             self.workbook = load_workbook(self.filepath, data_only=True)
             self.worksheets_num = len(self.workbook.worksheets)
-        except:
-            logger.error(f"加载 {self.filepath} 出错。")
+        except Exception as e:
+            logger.error(f"Loading {self.filepath} Error: {e}")
             self.workbook = None
             self.worksheets_num = None
 
@@ -135,12 +134,14 @@ class FormulaParser(object):
         products = []
         for sheet in self.workbook.sheetnames:
             if sheet.find('配料单') < 0:  # 跟踪单
+                flag = self.workbook[sheet]["A4"].value
                 name = self.workbook[sheet]["B4"].value
-                if name:
-                    products.append((name, sheet))
-                else:
+                if flag != "品名" or not name:
                     logger.warning(f'在 {self.filepath} 的 sheet {sheet} 中没有找到产品名, '
                                    '请检查是否为不标准的配方格式。')
+                    continue
+
+                products.append((name, sheet))
         return products
 
     def get_mixing_materials(self, start_row=8) -> list:
@@ -156,8 +157,8 @@ class FormulaParser(object):
 
         for row in ws[f"B{start_row}:C{ws.max_row}"]:
             name, amount = [cell.value for cell in row]
-            if name and isinstance(amount, float) or isinstance(amount, int):
-                materials.append(dict(name=name, amount=amount, workshop='配料'))
+            if name and (isinstance(amount, float) or isinstance(amount, int)):
+                materials.append(dict(name=str(name), amount=amount, unit='kg', workshop='配料'))
 
         return materials
 
@@ -202,6 +203,10 @@ class FormulaParser(object):
         ws = self.workbook[sheet]
         start_row = self.get_package_start_row(ws)
         text = ws[f"I{start_row}"].value
+
+        if not text or not isinstance(text, str):
+            logger.warning(f"读取不到包装信息: {self.filepath} {sheet}")
+            return info
 
         # 获取标签信息
         label_pattern = re.compile(r'标签[：:](.+)')
@@ -253,6 +258,10 @@ class FormulaParser(object):
         ws = self.workbook[sheet_name]
         text = ws["I8"].value
 
+        if not text or not isinstance(text, str):
+            logger.warning(f"读取不到研磨信息: {self.filepath} {sheet_name}")
+            return info
+
         # 研磨次数
         pattern = re.compile(r'(\d|\d[\-~]\d)遍', re.M)
         match = pattern.search(text)
@@ -282,7 +291,7 @@ class FormulaParser(object):
     @staticmethod
     def get_extends_start_row(ws) -> int:
         """获取加料信息起始行"""
-        start_row = 13
+        start_row = 10
         for row in range(start_row, ws.max_row):
             if ws.cell(row=row, column=1).value == "物料名称":
                 return row
@@ -292,7 +301,9 @@ class FormulaParser(object):
     @staticmethod
     def get_package_start_row(ws) -> int:
         """获取包装信息起始行"""
-        start_row = 22
+        start_row = 20
         for row in range(start_row, ws.max_row):
             if ws.cell(row=row, column=1).value == "包装工序":
                 return row
+
+        return start_row

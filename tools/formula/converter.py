@@ -1,8 +1,8 @@
-import os
 import glob
+import os
 
-from win32com.client import Dispatch
 from pywintypes import com_error  # noqa
+from win32com.client import Dispatch
 
 
 def xls2xlsx(origin_dir: str, to_dir: str):
