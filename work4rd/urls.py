@@ -18,8 +18,15 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.static import serve
 
+from work4rd.api_router import router
+
+admin.AdminSite.site_title = "Work4RD"
+admin.AdminSite.site_header = "Work4RD Admin"
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include(router.urls)),
+    path('api/', include('apps.account.urls')),
 ]
 
 if settings.DEBUG:

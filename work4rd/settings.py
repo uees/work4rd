@@ -161,6 +161,9 @@ STATICFILES_DIRS = (
     ('fonts', root('static/fonts'))
 )
 
+IDENTICON_FOREGROUND = ['#000000', '#0000CC', '#0099CC', '#33CC33', '#33FFFF', '#6666FF',
+                        '#66FF00', '#CC33CC', '#FF0033', '#FF6666', '#FFFF66', '#99CC66']
+
 # 允许使用用户名或密码登录
 AUTHENTICATION_BACKENDS = ['apps.account.user_login_backend.EmailOrUsernameModelBackend']
 
@@ -244,17 +247,25 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+    ),
     'PAGE_SIZE': 20,
     'SEARCH_PARAM': 'q',  # default search
     'COERCE_DECIMAL_TO_STRING': False,
+}
+
+JWT_AUTH = {
+    'JWT_ALLOW_REFRESH': True,
+    'JWT_AUTH_HEADER_PREFIX': 'Bearer',
 }
 
 # 重点，设置信任站点
 CORS_ORIGIN_WHITELIST = (
     'http://127.0.0.1',
     'http://localhost',
-    'http://127.0.0.1:8081',
-    'http://localhost:8081',
+    'http://127.0.0.1:9528',
+    'http://localhost:9528',
     'http://127.0.0.1:8000',
     'http://localhost:8000',
 )
