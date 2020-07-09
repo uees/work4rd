@@ -7,10 +7,11 @@ from .models import User
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
-        fields = ('url', 'username', 'nickname', 'email', 'groups')
+        exclude = ('user_permissions', 'password')
 
 
 class GroupSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Group
-        fields = ('url', 'name')
+        # fields = ('url', 'name')
+        exclude = ('permissions', )
